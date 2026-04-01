@@ -59,3 +59,68 @@ def test_10_finalizar_venda_sucesso(mercado):
     assert "Venda finalizada" in msg
     assert len(mercado.carrinho) == 0
 
+# --- FLUXO DE EXTENSÃO / ERRO (10 testes) ---
+
+def test_11_produto_nao_encontrado(mercado):
+    sucesso, msg = mercado.adicionar_ao_carrinho("banana", 2)
+    assert sucesso is False
+    assert msg == "Produto não encontrado"
+
+
+def test_12_quantidade_nao_numerica(mercado):
+    sucesso, msg = mercado.adicionar_ao_carrinho("arroz", "abc")
+    assert sucesso is False
+    assert msg == "Quantidade deve ser um número inteiro"
+
+
+def test_13_quantidade_zero(mercado):
+    sucesso, msg = mercado.adicionar_ao_carrinho("arroz", 0)
+    assert sucesso is False
+    assert msg == "Quantidade inválida"
+
+
+def test_14_quantidade_negativa(mercado):
+    sucesso, msg = mercado.adicionar_ao_carrinho("arroz", -1)
+    assert sucesso is False
+    assert msg == "Quantidade inválida"
+
+
+def test_15_estoque_insuficiente(mercado):
+    sucesso, msg = mercado.adicionar_ao_carrinho("cafe", 12)
+    assert sucesso is False
+    assert msg == "Estoque insuficiente"
+
+
+def test_16_limite_quantidade_excedido(mercado):
+    sucesso, msg = mercado.adicionar_ao_carrinho("arroz", 16)
+    assert sucesso is False
+    assert msg == "Limite de quantidade por produto excedido"
+
+
+def test_17_cupom_invalido(mercado):
+    sucesso, msg = mercado.aplicar_cupom("ERRADO")
+    assert sucesso is False
+    assert msg == "Cupom inválido ou expirado"
+
+
+def test_18_cupom_vazio(mercado):
+    sucesso, msg = mercado.aplicar_cupom("")
+    assert sucesso is False
+    assert msg == "Código vazio"
+
+
+def test_19_nao_altera_estoque_em_operacao_invalida(mercado):
+    estoque_inicial = mercado.estoque["arroz"]["quantidade"]
+    sucesso, msg = mercado.adicionar_ao_carrinho("arroz", 0)
+
+    assert sucesso is False
+    assert msg == "Quantidade inválida"
+    assert mercado.estoque["arroz"]["quantidade"] == estoque_inicial
+
+
+def test_20_carrinho_permanece_vazio_apos_falha(mercado):
+    sucesso, msg = mercado.adicionar_ao_carrinho("produto_inexistente", 3)
+
+    assert sucesso is False
+    assert msg == "Produto não encontrado"
+    assert len(mercado.carrinho) == 0
