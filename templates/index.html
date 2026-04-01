@@ -5,7 +5,7 @@
     <title>Mercadinho Inatel - CI/CD</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background-color: #f4f7f6; }
-        .container { max-width: 600px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 600px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: auto; }
         h1 { color: #2c3e50; text-align: center; }
         .produto { 
             border-bottom: 1px solid #eee; 
@@ -28,10 +28,12 @@
             transition: background 0.3s;
         }
         button:hover { background: #3498db; }
-        .controles-cupom { margin-top: 20px; padding: 15px; background: #ecf0f1; border-radius: 4px; }
-        input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 60%; }
+        .controles-cupom { margin-top: 20px; padding: 15px; background: #ecf0f1; border-radius: 4px; display: flex; gap: 10px; }
+        input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; flex-grow: 1; }
         .total-box { margin-top: 20px; text-align: right; border-top: 2px solid #2c3e50; padding-top: 10px; }
-        #resultado { color: #e74c3c; font-size: 1.5em; }
+        #resultado { color: #27ae60; font-size: 1.5em; font-weight: bold; }
+        .btn-finalizar { background-color: #27ae60; width: 100%; margin-top: 15px; font-size: 1.1em; padding: 12px; }
+        .btn-finalizar:hover { background-color: #2ecc71; }
     </style>
 </head>
 <body>
@@ -73,17 +75,17 @@
         <div class="total-box">
             <h3>Total da Compra:</h3>
             <div id="resultado">R$ 0.00</div>
+            <button class="btn-finalizar" onclick="finalizarCompra()">Finalizar Venda</button>
         </div>
     </div>
 
     <script>
         async function comprar(p) {
-            // Chamada para a rota /adicionar usando Query Parameters
             const res = await fetch(`/adicionar?produto=${p}&quantidade=1`);
             const dados = await res.json();
             
             if(dados.erro) {
-                alert("Erro: " + dados.erro);
+                alert("Atenção: " + dados.erro);
             } else {
                 document.getElementById('resultado').innerText = `R$ ${dados.total_carrinho.toFixed(2)}`;
             }
@@ -98,9 +100,29 @@
                 alert("Erro: " + dados.erro);
             } else {
                 document.getElementById('resultado').innerText = `R$ ${dados.novo_total.toFixed(2)}`;
-                alert(dados.mensagem);
+                alert("Sucesso: " + dados.mensagem);
             }
         }
+
+        // Nova função para a rota /finalizar
+       async function finalizarCompra() {
+    try {
+        const res = await fetch('/finalizar'); // Precisa ser exatamente o nome da rota no app.py
+        const dados = await res.json();
+
+        if (dados.erro) {
+            alert("Erro: " + dados.erro);
+        } else {
+            alert(dados.mensagem);
+            // Zera o valor na tela
+            document.getElementById('resultado').innerText = "R$ 0.00";
+            document.getElementById('cupomInput').value = "";
+        }
+    } catch (e) {
+        console.error("Erro na requisição:", e);
+        alert("Erro ao conectar com o servidor.");
+    }
+}
     </script>
 </body>
 </html>

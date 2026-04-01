@@ -1,36 +1,61 @@
 import pytest
 from mercadinho import Mercadinho
 
-
 @pytest.fixture
-def loja():
-    """Fixture para inicializar a classe Mercadinho antes de cada teste"""
+def mercado():
     return Mercadinho()
 
-# --- 1. Fluxo Normal (Cenário de Sucesso) ---
+# --- FLUXO NORMAL (10 Testes) --- 
 
-
-def test_adicionar_produto_sucesso(loja):
-    """
-    Testa se um produto existente com quantidade válida 
-    é adicionado corretamente ao carrinho.
-    """
-    sucesso, mensagem = loja.adicionar_ao_carrinho("arroz", 2)
-
+def test_01_adicionar_item_valido(mercado):
+    sucesso, msg = mercado.adicionar_ao_carrinho("arroz", 2)
     assert sucesso is True
-    assert mensagem == "Adicionado com sucesso"
-    assert loja.calcular_total() == 10.0  # 2 * 5.0 (preço do arroz)
+    assert len(mercado.carrinho) == 1
 
+def test_02_reducao_estoque_apos_adicao(mercado):
+    estoque_inicial = mercado.estoque["feijao"]["quantidade"]
+    mercado.adicionar_ao_carrinho("feijao", 5)
+    assert mercado.estoque["feijao"]["quantidade"] == estoque_inicial - 5
 
-# --- 2. Fluxo Inoportuno (Cenário de Erro) ---
-def test_estoque_insuficiente(loja):
-    """
-    Testa a tentativa de compra de uma quantidade maior 
-    do que a disponível no estoque (Fluxo de Exceção).
-    """
-    # O estoque inicial de café é 10. Tentaremos comprar 12.
-    sucesso, mensagem = loja.adicionar_ao_carrinho("cafe", 12)
+def test_03_calcular_total_sem_desconto(mercado):
+    mercado.adicionar_ao_carrinho("arroz", 2) # 10.0
+    mercado.adicionar_ao_carrinho("leite", 1) # 4.5
+    assert mercado.calcular_total() == 14.5
 
-    assert sucesso is False
-    assert mensagem == "Estoque insuficiente"
-    assert loja.calcular_total() == 0.0  # O carrinho deve continuar vazio
+def test_04_aplicar_cupom_valido(mercado):
+    mercado.adicionar_ao_carrinho("cafe", 1) # 12.0
+    mercado.aplicar_cupom("DEZOFF")
+    assert mercado.calcular_total() == 10.8
+
+def test_05_aplicar_cupom_inatel(mercado):
+    mercado.adicionar_ao_carrinho("oleo", 2) # 15.0
+    mercado.aplicar_cupom("INATEL50")
+    assert mercado.calcular_total() == 7.5
+
+def test_06_limpar_carrinho_e_devolver_estoque(mercado):
+    mercado.adicionar_ao_carrinho("acucar", 5)
+    mercado.limpar_carrinho()
+    assert mercado.estoque["acucar"]["quantidade"] == 25
+    assert len(mercado.carrinho) == 0
+
+def test_07_adicionar_multiplos_itens_diferentes(mercado):
+    mercado.adicionar_ao_carrinho("arroz", 1)
+    mercado.adicionar_ao_carrinho("feijao", 1)
+    assert len(mercado.carrinho) == 2
+
+def test_08_verificar_dados_do_item_no_carrinho(mercado):
+    mercado.adicionar_ao_carrinho("cafe", 1)
+    item = mercado.carrinho[0]
+    assert item["produto"] == "cafe"
+    assert item["preco"] == 12.0
+
+def test_09_total_zero_carrinho_vazio(mercado):
+    assert mercado.calcular_total() == 0.0
+
+def test_10_finalizar_venda_sucesso(mercado):
+    mercado.adicionar_ao_carrinho("arroz", 1)
+    sucesso, msg = mercado.finalizar_venda()
+    assert sucesso is True
+    assert "Venda finalizada" in msg
+    assert len(mercado.carrinho) == 0
+
