@@ -1,0 +1,107 @@
+name: CI/CD Mercadinho
+
+on:
+  push:
+    branches: [ "main", "marcus" ]
+  pull_request:
+
+jobs:
+
+  # ==========================================
+  # 🧪 TESTES
+  # ==========================================
+  test:
+    name: Executar Testes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Rodar testes
+        run: |
+          echo "Executando testes..."
+          PYTHONPATH=. pytest --html=report.html --self-contained-html
+
+      - name: Salvar relatório de testes
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-testes
+          path: report.html
+
+  # ==========================================
+  # 🧹 LINT (RODA EM PARALELO)
+  # ==========================================
+  lint:
+    name: Análise de Código (Lint)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Instalar flake8
+        run: pip install flake8
+
+      - name: Rodar lint
+        run: flake8 . || true
+
+  # ==========================================
+  # 📦 BUILD
+  # ==========================================
+  build:
+    name: Build do Projeto
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Criar pacote do projeto
+        run: |
+          echo "Gerando pacote..."
+          zip -r projeto.zip .
+
+      - name: Salvar artefato do build
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-projeto
+          path: projeto.zip
+
+  # ==========================================
+  # 🚀 DEPLOY
+  # ==========================================
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Simular deploy
+        run: |
+          echo "Iniciando deploy..."
+          sleep 2
+          echo "Deploy realizado com sucesso!"
+
+  # ==========================================
+  # 📢 NOTIFICAÇÃO
+  # ==========================================
+  notify:
+    name: Notificação Final
+    needs: [test, build, deploy]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Enviar notificação
+        run: |
+          echo "Pipeline finalizado!"
+          echo "Status: SUCESSO ✅"
