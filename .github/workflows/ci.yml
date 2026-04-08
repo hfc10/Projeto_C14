@@ -81,16 +81,28 @@ jobs:
   # 🚀 DEPLOY
   # ==========================================
   deploy:
-    name: Deploy
+    name: Deploy de Artefatos
     needs: build
     runs-on: ubuntu-latest
-
+    if: github.ref == 'refs/heads/main' # Só faz deploy se for na branch main 
     steps:
-      - name: Simular deploy
-        run: |
-          echo "Iniciando deploy..."
-          sleep 2
-          echo "Deploy realizado com sucesso!"
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Baixar artefato do build
+        uses: actions/download-artifact@v4
+        with:
+          name: build-projeto
+
+      - name: Criar GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: projeto.zip
+          tag_name: v1.0.${{ github.run_number }}
+          name: Release v1.0.${{ github.run_number }}
+          body: "Pacote distribuível gerado automaticamente pelo pipeline de CI/CD."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ==========================================
   # 📢 NOTIFICAÇÃO
@@ -99,9 +111,13 @@ jobs:
     name: Notificação Final
     needs: [test, build, deploy]
     runs-on: ubuntu-latest
-
     steps:
-      - name: Enviar notificação
-        run: |
-          echo "Pipeline finalizado!"
-          echo "Status: SUCESSO ✅"
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Enviar E-mail de Sucesso
+        env:
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
+        run: python send_notification.py
