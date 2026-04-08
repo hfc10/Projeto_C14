@@ -124,3 +124,135 @@ def test_20_carrinho_permanece_vazio_apos_falha(mercado):
     assert sucesso is False
     assert msg == "Produto não encontrado"
     assert len(mercado.carrinho) == 0
+
+
+
+    # Fluxo Histórico/Persistência: 21-30
+
+def test_21_finalizar_venda_registra_historico(mercado):
+   
+    mercado.adicionar_ao_carrinho("arroz", 2)   # 10.0
+    mercado.adicionar_ao_carrinho("leite", 1)   # 4.5
+    mercado.finalizar_venda()
+
+    assert len(mercado.vendas_realizadas) == 1
+    venda = mercado.vendas_realizadas[0]
+    assert venda["total"] == 14.5
+    assert len(venda["itens"]) == 2
+
+
+def test_22_carrinho_limpo_apos_finalizar_venda(mercado):
+    """
+    Após finalizar a venda, o carrinho deve ser zerado e o desconto
+    resetado, permitindo uma nova compra sem resíduos do estado anterior.
+    """
+    mercado.adicionar_ao_carrinho("cafe", 1)
+    mercado.aplicar_cupom("DEZOFF")     # 10% de desconto
+    mercado.finalizar_venda()
+
+    assert len(mercado.carrinho) == 0
+    assert mercado.desconto == 0.0
+    assert mercado.calcular_total() == 0.0
+
+
+def test_23_cupom_vinteoff_desconto_vinte_porcento(mercado):
+    """
+    Valida o cupom VINTEOFF aplicando 20% de desconto sobre o subtotal.
+    Verifica o cálculo aritmético e o arredondamento para 2 casas decimais.
+    """
+    mercado.adicionar_ao_carrinho("oleo", 2)    # 7.5 * 2 = 15.0
+    sucesso, msg = mercado.aplicar_cupom("VINTEOFF")
+
+    assert sucesso is True
+    assert mercado.calcular_total() == 12.0     # 15.0 * 0.80
+
+
+def test_24_multiplas_vendas_acumulam_historico(mercado):
+    """
+    Simula duas compras completas consecutivas e verifica que ambas
+    ficam registradas no histórico de vendas_realizadas com totais corretos.
+    """
+    # Primeira venda
+    mercado.adicionar_ao_carrinho("acucar", 1)  # 4.0
+    mercado.finalizar_venda()
+
+    # Segunda venda
+    mercado.adicionar_ao_carrinho("leite", 2)   # 9.0
+    mercado.finalizar_venda()
+
+    assert len(mercado.vendas_realizadas) == 2
+    assert mercado.vendas_realizadas[0]["total"] == 4.0
+    assert mercado.vendas_realizadas[1]["total"] == 9.0
+
+
+def test_25_estoque_nao_alterado_apos_limpar_carrinho(mercado):
+   
+    qtd_inicial_arroz = mercado.estoque["arroz"]["quantidade"]   # 20
+    qtd_inicial_feijao = mercado.estoque["feijao"]["quantidade"] # 15
+
+    mercado.adicionar_ao_carrinho("arroz", 3)
+    mercado.adicionar_ao_carrinho("feijao", 4)
+    mercado.limpar_carrinho()
+
+    assert mercado.estoque["arroz"]["quantidade"] == qtd_inicial_arroz
+    assert mercado.estoque["feijao"]["quantidade"] == qtd_inicial_feijao
+
+def test_26_finalizar_venda_carrinho_vazio(mercado):
+    
+    sucesso, msg = mercado.finalizar_venda()
+
+    assert sucesso is False
+    assert msg == "Carrinho vazio"
+    assert len(mercado.vendas_realizadas) == 0
+
+
+def test_27_cupom_case_sensitive_nao_aceita_minusculo(mercado):
+   
+    mercado.adicionar_ao_carrinho("arroz", 1)
+    sucesso, msg = mercado.aplicar_cupom("dezoff")
+
+    assert sucesso is False
+    assert msg == "Cupom inválido ou expirado"
+
+
+def test_28_estoque_zerado_apos_compra_maxima(mercado):
+   
+    estoque_cafe = mercado.estoque["cafe"]["quantidade"]  # 10
+
+    # Compra o máximo permitido por transação (até o limite de 15,
+    # mas o estoque do café é 10)
+    mercado.adicionar_ao_carrinho("cafe", 10)
+    mercado.finalizar_venda()
+
+    # Nova tentativa com estoque zerado
+    sucesso, msg = mercado.adicionar_ao_carrinho("cafe", 1)
+
+    assert sucesso is False
+    assert msg == "Estoque insuficiente"
+    assert mercado.estoque["cafe"]["quantidade"] == 0
+
+
+def test_29_desconto_nao_persiste_entre_compras(mercado):
+   
+    # Primeira compra com desconto
+    mercado.adicionar_ao_carrinho("arroz", 2)   # 10.0
+    mercado.aplicar_cupom("DEZOFF")             # 10% → 9.0
+    mercado.finalizar_venda()
+
+    # Segunda compra — NÃO deve ter desconto
+    mercado.adicionar_ao_carrinho("arroz", 2)   # 10.0
+
+    assert mercado.calcular_total() == 10.0     # sem desconto residual
+
+
+def test_30_quantidade_float_invalida(mercado):
+
+    # Com o código CORRIGIDO, o resultado esperado é:
+    sucesso, msg = mercado.adicionar_ao_carrinho("arroz", 1.5)
+
+    # Após aplicar a correção sugerida acima, estes asserts devem passar:
+    assert sucesso is False, (
+        "BUG: float 1.5 foi aceito silenciosamente como int(1)! "
+        "Aplique a correção descrita na docstring deste teste."
+    )
+    assert msg == "Quantidade deve ser um número inteiro"
