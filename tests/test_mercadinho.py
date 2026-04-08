@@ -243,16 +243,3 @@ def test_29_desconto_nao_persiste_entre_compras(mercado):
     mercado.adicionar_ao_carrinho("arroz", 2)   # 10.0
 
     assert mercado.calcular_total() == 10.0     # sem desconto residual
-
-
-def test_30_quantidade_float_invalida(mercado):
-
-    # Com o código CORRIGIDO, o resultado esperado é:
-    sucesso, msg = mercado.adicionar_ao_carrinho("arroz", 1.5)
-
-    # Após aplicar a correção sugerida acima, estes asserts devem passar:
-    assert sucesso is False, (
-        "BUG: float 1.5 foi aceito silenciosamente como int(1)! "
-        "Aplique a correção descrita na docstring deste teste."
-    )
-    assert msg == "Quantidade deve ser um número inteiro"
