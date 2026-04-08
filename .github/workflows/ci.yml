@@ -77,14 +77,14 @@ jobs:
           name: build-projeto
           path: projeto.zip
 
-  # ==========================================
+ # ==========================================
   # 🚀 DEPLOY
   # ==========================================
   deploy:
-    name: Deploy de Artefatos
+    name: Deploy
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' # Só faz deploy se for na branch main 
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout do código
         uses: actions/checkout@v3
@@ -100,24 +100,30 @@ jobs:
           files: projeto.zip
           tag_name: v1.0.${{ github.run_number }}
           name: Release v1.0.${{ github.run_number }}
-          body: "Pacote distribuível gerado automaticamente pelo pipeline de CI/CD."
+          body: "Pacote gerado pelo pipeline de CI/CD."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ==========================================
+# ==========================================
   # 📢 NOTIFICAÇÃO
   # ==========================================
   notify:
     name: Notificação Final
     needs: [test, build, deploy]
     runs-on: ubuntu-latest
+    if: always()
     steps:
       - name: Checkout do código
         uses: actions/checkout@v3
-
-      - name: Enviar E-mail de Sucesso
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Enviar Notificação
         env:
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
         run: python send_notification.py
+  
+  
