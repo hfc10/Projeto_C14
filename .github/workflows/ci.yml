@@ -85,6 +85,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    permissions:           
+      contents: write      # Permite criar a Release
+      packages: write      # Permite subir o arquivo
     steps:
       - name: Checkout do código
         uses: actions/checkout@v3
