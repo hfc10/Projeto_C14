@@ -7,7 +7,7 @@ def send_email():
     # As variáveis são puxadas do GitHub Actions (Secrets)
     email_sender = os.environ.get("EMAIL_USER")
     email_password = os.environ.get("EMAIL_PASS")
-    # O PDF exige que não seja hardcoded
+    # nao pode conter o email do destinatário no código)
     email_receiver = os.environ.get("EMAIL_RECEIVER")
 
     msg = EmailMessage()
