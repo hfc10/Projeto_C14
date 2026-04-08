@@ -243,3 +243,41 @@ def test_29_desconto_nao_persiste_entre_compras(mercado):
     mercado.adicionar_ao_carrinho("arroz", 2)   # 10.0
 
     assert mercado.calcular_total() == 10.0     # sem desconto residual
+
+
+def test_30_vendas_acumuladas_nao_sao_limpas(mercado):
+    # Realiza uma venda inicial
+    mercado.adicionar_ao_carrinho("arroz", 1)
+    mercado.finalizar_venda()
+
+    # Simula uma nova operação que é cancelada
+    mercado.adicionar_ao_carrinho("feijao", 2)
+    mercado.limpar_carrinho()
+
+    # Verifica se a venda anterior permanece salva
+    assert len(mercado.vendas_realizadas) == 1
+    assert mercado.vendas_realizadas[0]["itens"][0]["produto"] == "arroz"
+
+
+def test_31_adicionar_quantidade_negativa(mercado):
+    """
+    Cenário Inoportuno: Tenta adicionar uma quantidade negativa ao carrinho.
+    Espera-se que o sistema retorne Erro e não altere o estoque.
+    """
+    estoque_antes = mercado.estoque["arroz"]["quantidade"]
+    sucesso, msg = mercado.adicionar_ao_carrinho("arroz", -5)
+
+    assert sucesso is False
+    assert msg == "Quantidade inválida"
+    assert mercado.estoque["arroz"]["quantidade"] == estoque_antes
+
+
+def test_32_preco_item_fixado_na_adicao(mercado):
+    # Adiciona item com preço atual
+    mercado.adicionar_ao_carrinho("cafe", 1)  # Preço: 12.0
+
+    # Altera o preço no estoque (simulação de inflação)
+    mercado.estoque["cafe"]["preco"] = 20.0
+
+    # O total no carrinho deve manter o preço de quando foi adicionado
+    assert mercado.calcular_total() == 12.0
