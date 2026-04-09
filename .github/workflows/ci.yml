@@ -69,7 +69,7 @@ jobs:
       - name: Criar pacote do projeto
         run: |
           echo "Gerando pacote..."
-          zip -r projeto.zip .
+          zip -r projeto.zip . --exclude "venv/*" ".git/*" ".coverage" "report.html" ".pytest_cache/*" "__pycache__/*"
 
       - name: Salvar artefato do build
         uses: actions/upload-artifact@v4
