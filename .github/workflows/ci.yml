@@ -38,7 +38,7 @@ jobs:
           path: report.html
 
   # ==========================================
-  # 🧹 LINT (RODA EM PARALELO)
+  # 🧹 LINT (RODA EM PARALELO COM TEST)
   # ==========================================
   lint:
     name: Análise de Código (Lint)
@@ -52,7 +52,7 @@ jobs:
         run: pip install flake8
 
       - name: Rodar lint
-        run: flake8 . || true
+        run: flake8 . --exclude=venv,__pycache__ --max-line-length=120 || true
 
   # ==========================================
   # 📦 BUILD
@@ -69,7 +69,7 @@ jobs:
       - name: Criar pacote do projeto
         run: |
           echo "Gerando pacote..."
-          zip -r projeto.zip . --exclude "venv/*" ".git/*" ".coverage" "report.html" ".pytest_cache/*" "__pycache__/*"
+          zip -r projeto.zip . --exclude "venv/*" --exclude ".git/*" --exclude ".coverage" --exclude "report.html" --exclude ".pytest_cache/*" --exclude "__pycache__/*"
 
       - name: Salvar artefato do build
         uses: actions/upload-artifact@v4
@@ -77,7 +77,7 @@ jobs:
           name: build-projeto
           path: projeto.zip
 
- # ==========================================
+  # ==========================================
   # 🚀 DEPLOY
   # ==========================================
   deploy:
@@ -85,9 +85,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    permissions:           
-      contents: write      # Permite criar a Release
-      packages: write      # Permite subir o arquivo
+    permissions:
+      contents: write
+      packages: write
     steps:
       - name: Checkout do código
         uses: actions/checkout@v3
@@ -107,7 +107,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-# ==========================================
+  # ==========================================
   # 📢 NOTIFICAÇÃO
   # ==========================================
   notify:
@@ -118,15 +118,18 @@ jobs:
     steps:
       - name: Checkout do código
         uses: actions/checkout@v3
+
       - name: Configurar Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
+
       - name: Enviar Notificação
         env:
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
+          STATUS_TEST: ${{ needs.test.result }}
+          STATUS_BUILD: ${{ needs.build.result }}
+          STATUS_DEPLOY: ${{ needs.deploy.result }}
         run: python send_notification.py
-  
-  
