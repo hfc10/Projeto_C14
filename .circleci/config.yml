@@ -29,8 +29,29 @@ jobs:
           path: report.html
           destination: relatorio-testes
 
+lint:
+    # Ambiente Python utilizado para analise de codigo
+    docker:
+      - image: cimg/python:3.10
+    steps:
+      # Clona o repositório para execução 
+      - checkout
+      
+       # Instala o flake8 para analise de codigo 
+      - run:
+          name: Instalar Flake8
+          command: |
+            pip install flake8
+      
+      #executa a analise de codigo  
+      - run:
+          name: Análise de código
+          command: |
+            flake8 . --exclude=venv,__pycache__ --max-line-length=120 || true          
+
 # Orquestração: define a ordem em que os jobs rodam
 workflows:
   mercadinho_pipeline:
     jobs:
       - test
+      - lint
