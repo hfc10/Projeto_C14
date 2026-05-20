@@ -1,0 +1,36 @@
+version: 2.1
+
+# Definindo os jobs (tarefas)
+jobs:
+  test:
+    # Define o ambiente onde o código vai rodar (container Docker)
+    docker:
+      - image: cimg/python:3.10
+    
+    # Os passos exatos que o CircleCI vai executar
+    steps:
+      # 1. Baixa o código do repositório
+      - checkout
+
+      # 2. Instala as dependências listadas no requirements.txt
+      - run:
+          name: Instalar dependências
+          command: pip install -r requirements.txt
+
+      # 3. Executa os testes automatizados com pytest
+      - run:
+          name: Executar Testes
+          command: |
+            echo "Executando os testes do Mercadinho..."
+            PYTHONPATH=. pytest --html=report.html --self-contained-html
+
+      # 4. Salva o relatório de testes gerado como um artefato visualizável
+      - store_artifacts:
+          path: report.html
+          destination: relatorio-testes
+
+# Orquestração: define a ordem em que os jobs rodam
+workflows:
+  mercadinho_pipeline:
+    jobs:
+      - test
