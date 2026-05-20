@@ -1,6 +1,6 @@
 # 🛒 Mercadinho — Pipeline CI/CD com Testes Automatizados
 
-> Projeto desenvolvido para a disciplina **C14 – Engenharia de Software**  
+> Projeto desenvolvido para a disciplina **C14 – Engenharia de Software**
 > Professor: Christopher Lima
 
 ---
@@ -15,9 +15,8 @@ Sistema web de um mercadinho virtual desenvolvido com **Flask**, que permite adi
 
 ```
 Projeto_C14/
-├── .github/
-│   └── workflows/
-│       └── ci.yml            # Pipeline CI/CD
+├── .circleci/
+│   └── config.yml                # Pipeline CI/CD
 ├── tests/
 │   └── test_mercadinho.py    # 32 testes unitários
 ├── templates/
@@ -124,10 +123,12 @@ push/PR
 ```
 
 ### Artefatos gerados:
+
 - `relatorio-testes` — Relatório HTML dos testes (pytest-html)
 - `build-projeto` — Pacote `.zip` do projeto
 
 ### Deploy:
+
 O deploy é realizado automaticamente via **GitHub Releases**, publicando o pacote `.zip` com versionamento incremental (`v1.0.<run_number>`), somente após os testes e build serem bem-sucedidos.
 
 ---
@@ -136,30 +137,30 @@ O deploy é realizado automaticamente via **GitHub Releases**, publicando o paco
 
 Configure as seguintes secrets no seu repositório (`Settings > Secrets and variables > Actions`):
 
-| Secret           | Descrição                                     |
-|-----------------|-----------------------------------------------|
-| `EMAIL_USER`    | E-mail remetente (Gmail)                       |
-| `EMAIL_PASS`    | Senha de app do Gmail (não a senha normal)     |
-| `EMAIL_RECEIVER`| E-mail(s) destinatário(s), separados por vírgula |
+| Secret             | Descrição                                        |
+| ------------------ | -------------------------------------------------- |
+| `EMAIL_USER`     | E-mail remetente (Gmail)                           |
+| `EMAIL_PASS`     | Senha de app do Gmail (não a senha normal)        |
+| `EMAIL_RECEIVER` | E-mail(s) destinatário(s), separados por vírgula |
 
 ---
 
 ## 📦 Dependências
 
-| Pacote        | Versão  | Uso                        |
-|--------------|---------|----------------------------|
-| flask        | 3.0.0   | Framework web              |
-| pytest       | 7.4.3   | Framework de testes        |
-| pytest-html  | 4.1.1   | Relatório HTML dos testes  |
-| pytest-cov   | 3.0.0   | Cobertura de código        |
-| requests     | 2.31.0  | Requisições HTTP           |
-| gunicorn     | latest  | Servidor de produção       |
+| Pacote      | Versão | Uso                        |
+| ----------- | ------- | -------------------------- |
+| flask       | 3.0.0   | Framework web              |
+| pytest      | 7.4.3   | Framework de testes        |
+| pytest-html | 4.1.1   | Relatório HTML dos testes |
+| pytest-cov  | 3.0.0   | Cobertura de código       |
+| requests    | 2.31.0  | Requisições HTTP         |
+| gunicorn    | latest  | Servidor de produção     |
 
 ---
 
 ## 🌐 Deploy em Produção
 
-A aplicação está hospedada no **Render**:  
+A aplicação está hospedada no **Render**:
 🔗 [https://projeto-c14.onrender.com](https://projeto-c14.onrender.com)
 
 O Render detecta automaticamente o `requirements.txt` e utiliza o `gunicorn` para servir a aplicação Flask em produção.
@@ -174,13 +175,13 @@ Este projeto utilizou ferramentas de IA (Claude - Anthropic) como apoio no desen
 
 ## 👥 Integrantes
 
-| Nome | GitHub |
-|------|--------|
-| Henrique Fonseca | [@hfc10] |
-| Marcus Vinicius de Faria| [@MvJuneau21] |
-| Luiz Otávio Amante | [@luizotavio-amante] |
-| Jhonata De Oliveira  | [@Jhon4Jhonys] |
-| João Vítor Araújo | [@JoaoVACD] |
+| Nome                     | GitHub               |
+| ------------------------ | -------------------- |
+| Henrique Fonseca         | [@hfc10]             |
+| Marcus Vinicius de Faria | [@MvJuneau21]        |
+| Luiz Otávio Amante      | [@luizotavio-amante] |
+| Jhonata De Oliveira      | [@Jhon4Jhonys]       |
+| João Vítor Araújo     | [@JoaoVACD]          |
 
 ---
 
